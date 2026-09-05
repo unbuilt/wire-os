@@ -28,6 +28,12 @@ inherit externalsrc
 
 EXTERNALSRC = "${WORKSPACE}/anki/vic-cloudless"
 
+export GOPROXY
+export GOSUMDB
+export GONOSUMDB
+export GOFLAGS
+export GOPRIVATE
+
 GID_ANKI      = '2901'
 GID_CLOUD     = '888'
 GID_ANKINET   = '2905'
@@ -43,6 +49,12 @@ do_clean:append() {
 run_victor() {
   export -n CCACHE_DISABLE
   export CCACHE_DIR="${HOME}/.ccache"
+  GO_ENV=""
+  [ -n "$GOPROXY" ] && GO_ENV="$GO_ENV GOPROXY=$GOPROXY"
+  [ -n "$GOSUMDB" ] && GO_ENV="$GO_ENV GOSUMDB=$GOSUMDB"
+  [ -n "$GONOSUMDB" ] && GO_ENV="$GO_ENV GONOSUMDB=$GONOSUMDB"
+  [ -n "$GOFLAGS" ] && GO_ENV="$GO_ENV GOFLAGS=$GOFLAGS"
+  [ -n "$GOPRIVATE" ] && GO_ENV="$GO_ENV GOPRIVATE=$GOPRIVATE"
   env \
     -u AR \
     -u AS \
@@ -107,7 +119,7 @@ run_victor() {
     -u systemd_unitdir \
     -u systemd_user_unitdir \
     -u userfsdatadir \
-    -i PATH=/usr/bin:/bin:/usr/sbin:/sbin HOME=$HOME PWD="${EXTERNALSRC}" \
+    -i PATH=/usr/bin:/bin:/usr/sbin:/sbin HOME=$HOME $GO_ENV PWD="${EXTERNALSRC}" \
     "$@"
 }
 

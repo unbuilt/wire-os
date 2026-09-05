@@ -27,6 +27,12 @@ inherit externalsrc
 
 EXTERNALSRC = "${WORKSPACE}/anki/wired"
 
+export GOPROXY
+export GOSUMDB
+export GONOSUMDB
+export GOFLAGS
+export GOPRIVATE
+
 do_clean:append () {
     dir = bb.data.expand("${EXTERNALSRC}", d)
     os.system('cd "%s" && rm build/wired && rm build/libvector-gobot.so && rm vector-gobot/build/*' % dir)
@@ -36,6 +42,12 @@ do_clean:append () {
 run_victor() {
   export -n CCACHE_DISABLE
   export CCACHE_DIR="${HOME}/.ccache"
+  GO_ENV=""
+  [ -n "$GOPROXY" ] && GO_ENV="$GO_ENV GOPROXY=$GOPROXY"
+  [ -n "$GOSUMDB" ] && GO_ENV="$GO_ENV GOSUMDB=$GOSUMDB"
+  [ -n "$GONOSUMDB" ] && GO_ENV="$GO_ENV GONOSUMDB=$GONOSUMDB"
+  [ -n "$GOFLAGS" ] && GO_ENV="$GO_ENV GOFLAGS=$GOFLAGS"
+  [ -n "$GOPRIVATE" ] && GO_ENV="$GO_ENV GOPRIVATE=$GOPRIVATE"
   env \
     -u AR \
     -u AS \
@@ -100,7 +112,7 @@ run_victor() {
     -u systemd_unitdir \
     -u systemd_user_unitdir \
     -u userfsdatadir \
-    -i PATH=/usr/bin:/bin:/usr/sbin:/sbin HOME=$HOME PWD="${WORKSPACE}/anki/wired" \
+    -i PATH=/usr/bin:/bin:/usr/sbin:/sbin HOME=$HOME $GO_ENV PWD="${WORKSPACE}/anki/wired" \
     "$@"
 }
 

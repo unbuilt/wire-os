@@ -15,6 +15,11 @@ EXTERNALSRC = "${WORKSPACE}/anki/victor"
 
 export SSH_AUTH_SOCK
 export ANKI_BUILD_VERSION
+export GOPROXY
+export GOSUMDB
+export GONOSUMDB
+export GOFLAGS
+export GOPRIVATE
 
 # Prevent yocto from splitting out debug files for this recipe
 INHIBIT_PACKAGE_DEBUG_SPLIT = '1'
@@ -111,6 +116,12 @@ do_compile[network] = "1"
 run_victor() {
   export -n CCACHE_DISABLE
   export CCACHE_DIR="${HOME}/.ccache"
+  GO_ENV=""
+  [ -n "$GOPROXY" ] && GO_ENV="$GO_ENV GOPROXY=$GOPROXY"
+  [ -n "$GOSUMDB" ] && GO_ENV="$GO_ENV GOSUMDB=$GOSUMDB"
+  [ -n "$GONOSUMDB" ] && GO_ENV="$GO_ENV GONOSUMDB=$GONOSUMDB"
+  [ -n "$GOFLAGS" ] && GO_ENV="$GO_ENV GOFLAGS=$GOFLAGS"
+  [ -n "$GOPRIVATE" ] && GO_ENV="$GO_ENV GOPRIVATE=$GOPRIVATE"
   env \
     -u AR \
     -u AS \
@@ -175,7 +186,7 @@ run_victor() {
     -u systemd_unitdir \
     -u systemd_user_unitdir \
     -u userfsdatadir \
-    -i PATH=/usr/bin:/bin:/usr/sbin:/sbin HOME=$HOME \
+    -i PATH=/usr/bin:/bin:/usr/sbin:/sbin HOME=$HOME $GO_ENV \
     "$@"
 }
 

@@ -249,7 +249,17 @@ if [[ "${NO_DOCKER}" != "1" ]]; then
 fi
 
 function run_with_docker() {
-    docker run -it --rm \
+    # allocate a TTY only when running interactively; headless/background builds
+    # (no controlling terminal) must omit -t or docker aborts with "the input
+    # device is not a TTY"
+    local DOCKER_TTY_FLAG=""
+    if [ -t 0 ] && [ -t 1 ]; then
+        DOCKER_TTY_FLAG="-t"
+    fi
+    docker run -i ${DOCKER_TTY_FLAG:-} --rm \
+    ${GOPROXY:+-e GOPROXY=${GOPROXY}} \
+    ${GOSUMDB:+-e GOSUMDB=${GOSUMDB}} \
+    ${GOPRIVATE:+-e GOPRIVATE=${GOPRIVATE}} \
     -v $(pwd)/anki-deps:/home/$USER/.anki \
     -v $(pwd):$(pwd) \
     -v $(pwd)/build/cache:/home/$USER/.ccache \
