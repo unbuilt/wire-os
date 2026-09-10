@@ -21,6 +21,8 @@ export GONOSUMDB
 export GOFLAGS
 export GOPRIVATE
 
+SHERPA_KWS ?= "OFF"
+
 # Prevent yocto from splitting out debug files for this recipe
 INHIBIT_PACKAGE_DEBUG_SPLIT = '1'
 # Victor's CMake build process already strips libs & exes, don't strip again.
@@ -114,6 +116,11 @@ do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 do_compile[network] = "1"
 
 run_victor() {
+  case "$1" in
+    */victor_build_*.sh)
+      set -- "$@" "-DSHERPA_KWS=${SHERPA_KWS}"
+      ;;
+  esac
   export -n CCACHE_DISABLE
   export CCACHE_DIR="${HOME}/.ccache"
   GO_ENV=""
@@ -245,6 +252,11 @@ do_compile[nostamp] = "1"
 
 do_install () {
   run_victor ${S}/project/victor/scripts/install.sh ${BUILDSRC} ${D}
+  if [ "${SHERPA_KWS}" = "ON" ]; then
+    # The production environment otherwise remains unchanged (including AEC/Alexa).
+    sed -i '/^ANKI_KWS_BACKEND=/d' ${D}/anki/etc/vic-anim.env
+    printf '\nANKI_KWS_BACKEND=sherpa_onnx\n' >> ${D}/anki/etc/vic-anim.env
+  fi
   # for if anyone wants to run stuff compiled with vicos-sdk clang++
   install -d ${D}/usr/lib
   install -m 0755 ${D}/anki/lib/libc++.so.1 ${D}/usr/lib/
